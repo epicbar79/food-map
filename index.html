@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>味跡地圖 Google Sheets 版｜美食資訊持續更新網站</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="light"] {
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+      --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+      --space-1:.25rem; --space-2:.5rem; --space-3:.75rem; --space-4:1rem; --space-5:1.25rem; --space-6:1.5rem; --space-8:2rem; --space-10:2.5rem; --space-12:3rem; --space-16:4rem;
+      --color-bg:#f7f6f2; --color-surface:#fbfaf7; --color-surface-2:#f1efe9; --color-surface-3:#ece8df; --color-border:#d8d3ca; --color-divider:#e2ddd5;
+      --color-text:#26231d; --color-text-muted:#726d64; --color-text-faint:#aaa49b; --color-text-inverse:#f8f7f3;
+      --color-primary:#0d6a66; --color-primary-hover:#0b5552; --color-primary-highlight:#dce9e6; --color-gold:#9b6a2d; --color-success:#437a22;
+      --radius-sm:.5rem; --radius-md:.9rem; --radius-lg:1.25rem; --radius-xl:1.75rem; --radius-full:9999px;
+      --shadow-sm:0 1px 2px rgba(28,24,16,.06); --shadow-md:0 10px 24px rgba(28,24,16,.08); --shadow-lg:0 20px 44px rgba(28,24,16,.12);
+      --font-display:'Noto Serif TC', Georgia, serif; --font-body:'Inter', sans-serif;
+    }
+    [data-theme="dark"] {
+      --color-bg:#171614; --color-surface:#211f1b; --color-surface-2:#292621; --color-surface-3:#322e28; --color-border:#3b3832; --color-divider:#322f2a;
+      --color-text:#ece7de; --color-text-muted:#b6b0a5; --color-text-faint:#7f786d; --color-text-inverse:#171614;
+      --color-primary:#66b2ac; --color-primary-hover:#82c6c1; --color-primary-highlight:#2a3938; --color-gold:#d7ae79; --color-success:#8fc56b;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.25); --shadow-md:0 10px 24px rgba(0,0,0,.30); --shadow-lg:0 20px 44px rgba(0,0,0,.35);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-text-size-adjust:none;text-size-adjust:none;scroll-behavior:smooth}
+    body{min-height:100dvh;font-family:var(--font-body);font-size:var(--text-base);line-height:1.65;background:var(--color-bg);color:var(--color-text)}
+    img,svg{display:block;max-width:100%} button,input,select,textarea{font:inherit;color:inherit} button{cursor:pointer;border:none;background:none}
+    a{color:inherit;text-decoration:none} :focus-visible{outline:2px solid var(--color-primary);outline-offset:3px;border-radius:var(--radius-sm)}
+    .skip-link{position:absolute;left:-9999px}.skip-link:focus{left:1rem;top:1rem;z-index:100;background:var(--color-primary);color:var(--color-text-inverse);padding:.7rem 1rem;border-radius:999px}
+    .container{width:min(1180px,calc(100% - 2rem));margin-inline:auto}
+    .header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--color-bg) 88%,transparent);backdrop-filter:blur(18px);border-bottom:1px solid var(--color-divider)}
+    .header-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 0;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:.9rem}
+    .brand-mark{width:48px;height:48px;padding:10px;border-radius:14px;background:linear-gradient(145deg,var(--color-primary-highlight),var(--color-surface-2));color:var(--color-primary);box-shadow:var(--shadow-sm)}
+    .brand-title{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700}.brand-sub{font-size:var(--text-xs);color:var(--color-text-muted)}
+    .row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+    .btn,.btn-primary,.btn-soft{min-height:44px;padding:.78rem 1rem;border-radius:999px;transition:.18s ease}
+    .btn{border:1px solid var(--color-border);background:var(--color-surface)} .btn:hover,.btn-soft:hover{background:var(--color-surface-2)}
+    .btn-primary{background:var(--color-primary);color:var(--color-text-inverse)} .btn-primary:hover{background:var(--color-primary-hover)}
+    .btn-soft{background:var(--color-primary-highlight);color:var(--color-primary)}
+    .hero{padding:clamp(3rem,8vw,6rem) 0 2.5rem}
+    .hero-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:2rem;align-items:end}
+    .eyebrow{display:inline-flex;gap:.5rem;align-items:center;padding:.4rem .8rem;border-radius:999px;background:var(--color-primary-highlight);color:var(--color-primary);font-size:var(--text-xs);letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem}
+    h1{font-family:var(--font-display);font-size:var(--text-2xl);line-height:1.1;max-width:11ch}
+    .lead{margin-top:1rem;color:var(--color-text-muted);max-width:60ch}
+    .hero-card,.panel,.card,.sheet{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);box-shadow:var(--shadow-md)}
+    .hero-card{padding:1.5rem;display:grid;gap:1rem}
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+    .stat{background:var(--color-surface-2);border-radius:1rem;padding:1rem}.stat strong{display:block;font-size:var(--text-lg)} .stat span{font-size:var(--text-xs);color:var(--color-text-muted)}
+    .section{padding:2rem 0}.section-head{display:flex;justify-content:space-between;gap:1rem;align-items:end;flex-wrap:wrap;margin-bottom:1.25rem}
+    .section-head h2{font-family:var(--font-display);font-size:var(--text-xl)} .section-head p{max-width:62ch;color:var(--color-text-muted)}
+    .layout{display:grid;grid-template-columns:320px 1fr;gap:1.5rem;align-items:start}
+    .panel{padding:1.25rem}.panel h3,.card h3{font-size:var(--text-lg);margin-bottom:1rem}
+    .stack{display:grid;gap:1rem} label{display:grid;gap:.45rem;font-size:var(--text-sm);font-weight:600}
+    input,select,textarea{width:100%;border:1px solid var(--color-border);background:var(--color-bg);padding:.85rem 1rem;border-radius:.9rem}
+    textarea{min-height:92px;resize:vertical}
+    .toolbar{display:grid;gap:1rem}.toolbar-top{display:grid;grid-template-columns:1.2fr .75fr .75fr auto;gap:.75rem}
+    .chip-row,.tag-row,.inline{display:flex;gap:.5rem;flex-wrap:wrap}.chip,.tag,.badge{display:inline-flex;align-items:center;gap:.35rem;padding:.36rem .72rem;border-radius:999px;font-size:var(--text-xs)}
+    .chip{background:var(--color-primary-highlight);color:var(--color-primary)} .tag{background:var(--color-surface-2);color:var(--color-text-muted)} .badge{background:color-mix(in srgb,var(--color-gold) 14%, var(--color-surface));color:var(--color-gold)}
+    .meta{display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap;color:var(--color-text-muted);font-size:var(--text-sm);margin:1rem 0}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+    .card{padding:1.25rem;display:grid;gap:1rem;content-visibility:auto}.card-top{display:flex;justify-content:space-between;gap:1rem;align-items:start}
+    .muted{color:var(--color-text-muted)} .tiny{font-size:var(--text-xs);color:var(--color-text-faint)} .rating{font-weight:700;color:var(--color-gold)}
+    .empty{padding:3rem 1.5rem;text-align:center;border:1px dashed var(--color-border);border-radius:var(--radius-xl);color:var(--color-text-muted);background:var(--color-surface)}
+    .sheets-guide{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .sheet{padding:1.25rem}.sheet ol{padding-left:1.1rem;color:var(--color-text-muted)} .sheet li+li{margin-top:.55rem}
+    .table-wrap{overflow:auto;border:1px solid var(--color-border);border-radius:1rem}
+    table{width:100%;border-collapse:collapse;background:var(--color-surface)} th,td{padding:.9rem 1rem;border-bottom:1px solid var(--color-divider);text-align:left;vertical-align:top}
+    th{font-size:var(--text-sm);background:var(--color-surface-2)}
+    .footer{padding:2.5rem 0 3rem;color:var(--color-text-muted)}
+    @media (max-width: 980px){.hero-grid,.layout,.sheets-guide{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.toolbar-top{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr 1fr 1fr}}
+    @media (max-width: 640px){.container{width:min(100% - 1rem,1180px)} .stat-grid{grid-template-columns:1fr} .panel,.card,.hero-card,.sheet{padding:1rem} h1{max-width:unset}}
+    @media (prefers-reduced-motion: reduce){*{scroll-behavior:auto;transition:none!important}}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到內容</a>
+  <header class="header">
+    <div class="container header-inner">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <path d="M18 18c10-8 18-8 28 0" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <path d="M18 30c10 8 18 8 28 0" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <path d="M25 14v36" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <path d="M39 14v36" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div class="brand-title">味跡地圖 Google Sheets 版</div>
+          <div class="brand-sub">適合長期維護的美食資訊網站原型</div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn" data-theme-toggle aria-label="切換深淺色模式">深色模式</button>
+        <button class="btn-primary" data-scroll="#sheet-guide">看串接方式</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">Google Sheets Ready</div>
+          <h1>用試算表維護，網站自動呈現。</h1>
+          <p class="lead">這一版把方向拉得更清楚：你可以先用 Google Sheets 當成輕量後台，平常只要在表格新增或修改店家資料，網站前端就能同步更新。對你這種重視結構、持續維護與儀表化管理的人，這會是很實際的路線。</p>
+        </div>
+        <aside class="hero-card">
+          <div class="stat-grid">
+            <div class="stat"><strong id="count-all">0</strong><span>資料筆數</span></div>
+            <div class="stat"><strong id="count-fav">0</strong><span>收藏店家</span></div>
+            <div class="stat"><strong id="count-area">0</strong><span>地區數量</span></div>
+          </div>
+          <div class="stack tiny">
+            <span>建議資料欄位：name、area、category、price、signature、tags、rating、favorite、note、reservation、mapUrl。</span>
+            <span>正式版可再加：圖片欄位、營業時間、是否適合單人/約會/聚餐、再訪優先級、酒單重點。</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container section-head">
+        <div>
+          <h2>前台瀏覽</h2>
+          <p>先把資料模型定清楚，再把前台體驗做順。這個頁面示範了實際前端應有的搜尋、篩選、收藏與卡片瀏覽形式。</p>
+        </div>
+      </div>
+      <div class="container layout">
+        <aside class="panel">
+          <h3>欄位樣板</h3>
+          <div class="stack">
+            <label>搜尋關鍵字
+              <input id="search-input" placeholder="搜尋店名、地區、料理、標籤" />
+            </label>
+            <label>地區
+              <select id="filter-area"><option value="">全部地區</option></select>
+            </label>
+            <label>價位
+              <select id="filter-price">
+                <option value="">全部價位</option>
+                <option>平價</option>
+                <option>中價位</option>
+                <option>高價位</option>
+              </select>
+            </label>
+            <div class="inline">
+              <button class="btn-primary" id="export-btn">匯出 JSON</button>
+              <button class="btn-soft" id="reset-btn">重設條件</button>
+            </div>
+            <p class="tiny">這裡示範的是網站前台控制區；正式接 Google Sheets 後，新增資料會在試算表中進行，不必在網站頁面手動輸入。</p>
+          </div>
+        </aside>
+
+        <section>
+          <div class="panel toolbar">
+            <div class="toolbar-top">
+              <input id="quick-search" placeholder="快速搜尋" aria-label="快速搜尋" />
+              <select id="quick-area"><option value="">全部地區</option></select>
+              <select id="quick-price"><option value="">全部價位</option><option>平價</option><option>中價位</option><option>高價位</option></select>
+              <button class="btn" id="favorite-only">只看收藏</button>
+            </div>
+            <div class="chip-row" id="category-chips"></div>
+          </div>
+          <div class="meta">
+            <div id="summary">載入中</div>
+            <div class="inline">
+              <span class="tag">Google Sheets 可接</span>
+              <span class="tag">適合長期維護</span>
+              <span class="tag">資料結構清楚</span>
+            </div>
+          </div>
+          <div id="cards" class="grid" aria-live="polite"></div>
+          <div id="empty" class="empty" hidden>目前沒有符合條件的店家資料。</div>
+        </section>
+      </div>
+    </section>
+
+    <section class="section" id="sheet-guide">
+      <div class="container section-head">
+        <div>
+          <h2>Google Sheets 串接方式</h2>
+          <p>正式上線時，最穩的做法是把 Google Sheets 當資料來源。你維護表格，網站負責讀取並顯示。這樣比一開始做完整後台更省成本，也更符合持續更新的需求。</p>
+        </div>
+      </div>
+      <div class="container sheets-guide">
+        <article class="sheet">
+          <h3>步驟流程</h3>
+          <ol>
+            <li>建立一份 Google Sheets，第一列固定為欄位名稱。</li>
+            <li>欄位建議包含：name、area、category、price、signature、tags、rating、favorite、note。</li>
+            <li>將試算表整理為乾淨資料表，不要合併儲存格。</li>
+            <li>用 Google Apps Script 或公開 JSON 方式，把資料輸出給前端讀取。</li>
+            <li>網站前端用 JavaScript 抓資料後渲染卡片、篩選器與統計數字。</li>
+          </ol>
+        </article>
+        <article class="sheet">
+          <h3>你最適合的版本</h3>
+          <div class="stack muted">
+            <p><span class="badge">推薦</span> Google Sheets + Apps Script Web App：最平衡，維護容易，也可保留日後擴充性。</p>
+            <p>如果只是個人使用，可先用公開 JSON 或手動匯出 CSV。</p>
+            <p>如果未來要多人協作、權限管理、圖片與地圖功能，再升級到 Supabase 或 Firebase。</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container section-head">
+        <div>
+          <h2>欄位設計建議</h2>
+          <p>既然你很適合用結構化方式維護資料，前期就把欄位定義清楚，後面做分析、排序、儀表板才會順。</p>
+        </div>
+      </div>
+      <div class="container table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>欄位</th>
+              <th>用途</th>
+              <th>範例</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>name</td><td>店家名稱</td><td>Basili Hall</td></tr>
+            <tr><td>area</td><td>行政區或旅遊區域</td><td>台北大安、北投、東京銀座</td></tr>
+            <tr><td>category</td><td>料理類型</td><td>法式、日式、咖啡甜點、燒鳥</td></tr>
+            <tr><td>price</td><td>價位級距</td><td>平價 / 中價位 / 高價位</td></tr>
+            <tr><td>signature</td><td>推薦品項</td><td>季節套餐、昭和布丁、鰻魚飯</td></tr>
+            <tr><td>tags</td><td>快速搜尋與篩選</td><td>約會, 單人友善, 溫泉行程</td></tr>
+            <tr><td>rating</td><td>主觀評分</td><td>4.5</td></tr>
+            <tr><td>favorite</td><td>是否列入收藏</td><td>true / false</td></tr>
+            <tr><td>note</td><td>短評</td><td>適合正式聚餐，整體節奏穩</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container stack">
+      <p>這一版的定位不是單純展示頁，而是「正式版之前的網站規格雛形」。你可以直接拿這個版型往下延伸成真實可維護的美食網站。</p>
+      <p class="tiny">若下一步要我繼續做，最合理的是：幫你加上 Google Sheets 假資料串接範例，或直接做成可部署到 GitHub Pages / Netlify 的正式版本。</p>
+    </div>
+  </footer>
+
+  <script>
+    const seedData = [
+      { id: crypto.randomUUID(), name: 'Basili Hall', area: '台北大安', category: '法式', price: '高價位', signature: '季節套餐', tags: ['約會','精緻餐飲'], rating: 4.8, note: '節奏穩、菜色完整，適合正式聚餐。', favorite: true },
+      { id: crypto.randomUUID(), name: '後驛熊', area: '台北中山', category: '法式', price: '中價位', signature: '主廚套餐', tags: ['聚餐','預約制'], rating: 4.5, note: '有記憶點，適合安排一場比較正式的晚餐。', favorite: false },
+      { id: crypto.randomUUID(), name: '湯泉小路食堂', area: '北投', category: '日式', price: '中價位', signature: '鰻魚飯', tags: ['溫泉行程','單人友善'], rating: 4.2, note: '很適合安排在溫泉行程之後。', favorite: false },
+      { id: crypto.randomUUID(), name: '山城布丁研究所', area: '台中西區', category: '咖啡甜點', price: '平價', signature: '昭和布丁', tags: ['甜點','下午茶'], rating: 4.3, note: '甜點穩定，適合短暫停留。', favorite: true },
+      { id: crypto.randomUUID(), name: '炭火小町', area: '東京銀座', category: '燒鳥', price: '中價位', signature: '炭烤雞腿串', tags: ['日本旅行','清酒搭配'], rating: 4.6, note: '很適合作為晚間酒食行程。', favorite: false }
+    ];
+
+    let entries = [...seedData];
+    let activeCategory = '';
+    let favoriteOnly = false;
+
+    const ids = {
+      cards: document.getElementById('cards'),
+      empty: document.getElementById('empty'),
+      searchInput: document.getElementById('search-input'),
+      quickSearch: document.getElementById('quick-search'),
+      filterArea: document.getElementById('filter-area'),
+      quickArea: document.getElementById('quick-area'),
+      filterPrice: document.getElementById('filter-price'),
+      quickPrice: document.getElementById('quick-price'),
+      categoryChips: document.getElementById('category-chips'),
+      summary: document.getElementById('summary'),
+      countAll: document.getElementById('count-all'),
+      countFav: document.getElementById('count-fav'),
+      countArea: document.getElementById('count-area')
+    };
+
+    const themeToggle = document.querySelector('[data-theme-toggle]');
+    function setTheme(theme){
+      document.documentElement.setAttribute('data-theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '淺色模式' : '深色模式';
+    }
+    setTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    themeToggle.addEventListener('click',()=>setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+    document.querySelectorAll('[data-scroll]').forEach(btn => btn.addEventListener('click', () => {
+      document.querySelector(btn.dataset.scroll)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+
+    function normalize(text){ return String(text || '').trim().toLowerCase(); }
+
+    function populateFilters(){
+      const areas = [...new Set(entries.map(item => item.area))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+      const areaOptions = '<option value="">全部地區</option>' + areas.map(area => `<option value="${area}">${area}</option>`).join('');
+      ids.filterArea.innerHTML = areaOptions;
+      ids.quickArea.innerHTML = areaOptions;
+
+      const categories = [...new Set(entries.map(item => item.category))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+      ids.categoryChips.innerHTML = ['全部', ...categories].map(category => {
+        const value = category === '全部' ? '' : category;
+        const active = (!activeCategory && !value) || activeCategory === value;
+        return `<button class="${active ? 'btn-primary' : 'btn'}" data-category="${value}">${category}</button>`;
+      }).join('');
+      ids.categoryChips.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => { activeCategory = btn.dataset.category; render(); }));
+    }
+
+    function getState(){
+      return {
+        keyword: normalize(ids.searchInput.value || ids.quickSearch.value),
+        area: ids.filterArea.value || ids.quickArea.value,
+        price: ids.filterPrice.value || ids.quickPrice.value
+      };
+    }
+
+    function render(){
+      populateFilters();
+      const { keyword, area, price } = getState();
+      const filtered = entries.filter(item => {
+        const target = [item.name, item.area, item.category, item.signature, item.note, ...(item.tags || [])].join(' ');
+        return (!keyword || normalize(target).includes(keyword)) && (!area || item.area === area) && (!price || item.price === price) && (!activeCategory || item.category === activeCategory) && (!favoriteOnly || item.favorite);
+      });
+
+      ids.countAll.textContent = entries.length;
+      ids.countFav.textContent = entries.filter(item => item.favorite).length;
+      ids.countArea.textContent = new Set(entries.map(item => item.area)).size;
+      ids.summary.textContent = `共 ${entries.length} 筆資料，目前顯示 ${filtered.length} 筆${favoriteOnly ? '（收藏模式）' : ''}。`;
+
+      ids.cards.innerHTML = filtered.map(item => `
+        <article class="card">
+          <div class="card-top">
+            <div>
+              <h3>${item.name}</h3>
+              <div class="muted">${item.area} • ${item.category} • ${item.price}</div>
+            </div>
+            <button class="btn" data-fav="${item.id}">${item.favorite ? '已收藏' : '收藏'}</button>
+          </div>
+          <div class="chip-row">
+            <span class="chip">推薦：${item.signature || '待補充'}</span>
+            <span class="chip rating">${Number(item.rating).toFixed(1)} / 5</span>
+          </div>
+          <div class="tag-row">${(item.tags || []).map(tag => `<span class="tag"># ${tag}</span>`).join('')}</div>
+          <p class="muted">${item.note || '尚未填寫短評。'}</p>
+        </article>
+      `).join('');
+
+      ids.empty.hidden = filtered.length !== 0;
+      ids.cards.querySelectorAll('[data-fav]').forEach(btn => btn.addEventListener('click', () => {
+        entries = entries.map(item => item.id === btn.dataset.fav ? { ...item, favorite: !item.favorite } : item);
+        render();
+      }));
+    }
+
+    [ids.searchInput, ids.quickSearch].forEach(el => el.addEventListener('input', event => {
+      const value = event.target.value;
+      ids.searchInput.value = value;
+      ids.quickSearch.value = value;
+      render();
+    }));
+    [ids.filterArea, ids.quickArea].forEach(el => el.addEventListener('change', event => {
+      ids.filterArea.value = event.target.value;
+      ids.quickArea.value = event.target.value;
+      render();
+    }));
+    [ids.filterPrice, ids.quickPrice].forEach(el => el.addEventListener('change', event => {
+      ids.filterPrice.value = event.target.value;
+      ids.quickPrice.value = event.target.value;
+      render();
+    }));
+
+    document.getElementById('favorite-only').addEventListener('click', (event) => {
+      favoriteOnly = !favoriteOnly;
+      event.currentTarget.textContent = favoriteOnly ? '顯示全部' : '只看收藏';
+      render();
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      ids.searchInput.value = '';
+      ids.quickSearch.value = '';
+      ids.filterArea.value = '';
+      ids.quickArea.value = '';
+      ids.filterPrice.value = '';
+      ids.quickPrice.value = '';
+      activeCategory = '';
+      favoriteOnly = false;
+      document.getElementById('favorite-only').textContent = '只看收藏';
+      render();
+    });
+
+    document.getElementById('export-btn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'food-directory-google-sheets-ready.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    render();
+  </script>
+</body>
+</html>
